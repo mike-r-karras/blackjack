@@ -1,0 +1,20 @@
+{
+    "name": "blackjack-mkarras",
+    "private": true,
+    "version": "0.1.1",
+    "description": "A blackjaxk simulation",
+    "author": "Mike Karras",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mike-r-karras/blackjack.git"
+    },
+    "scripts": {
+        "start": "node ./app.js"
+    },
+    "engines": {
+        "node": "^10.15.3"
+    },
+    "dependencies": {
+        "lodash": "^4.17.21"
+    }
+}
