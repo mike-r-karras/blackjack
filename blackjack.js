@@ -56,13 +56,12 @@ class Participant {
         this.busted = false;
     }
     Total() {
-        console.log(this.visible + ' -- Total() called.');
         const total = this.hand.reduce((a,b) => { return a + b.value}, 0);
         return total;
     }
     Shows() {
-        console.log(this.visible + ' -- Shows() called.');
         const shows = this.visible.reduce((a,b) => { return a + b.value}, 0);
+        return shows;``
     }
     testBust() {
         if (this.Total() > 21) {
@@ -159,33 +158,37 @@ class Game {
         // trim final comma
         this.report = this.report.replace(new RegExp(", $"), "");
         this.report += ' = ' + player.Total();
+        console.log(this.report);
+        this.report = '';
     }
 
     dealerReport() {
-        this.report += '\nDealer hand: ';
+        this.report += 'Dealer hand: ';
         _.forEach(this.dealer.hand, (card) => {
             this.report += card.name + ' ' + card.suit + ', ';
         });
         // trim final comma
         this.report = this.report.replace(new RegExp(", $"), "");
         this.report += ' = ' + this.dealer.Total();
+        console.log(this.report);
+        this.report = '';
     }
 
     resultReport() {
         _.forEach(this.players, (player) => {
             if (this.dealer.busted) {
-                this.report += '\nResult: Player ';
+                this.report += 'Result: Player ';
                 if (this.players.length > 1 ) {
                     this.report += ' ('+ player.name + ') ';
                 }
                 this.report += 'wins!';
             } else {
                 if (player.busted) {
-                    this.report += '\nResult: Dealer wins!';
+                    this.report += 'Result: Dealer wins!';
                 } else if (player.Total() < this.dealer.Total()) {
-                    this.report += '\nResult: Dealer wins!';
+                    this.report += 'Result: Dealer wins!';
                 } else {
-                    this.report += '\nResult: Player ';
+                    this.report += 'Result: Player ';
                     if (this.players.length > 1 ) {
                         this.report += ' ('+ player.name + ') ';
                     }
@@ -198,27 +201,22 @@ class Game {
 
     playerHit(name) {
         let player = this.players.find(a => a.name === name);
-        let dealer = this.dealer;
-        console.log(this);
         if (!player.stayed && !this.isBust) {
             const card = this.shoe.cards.pop();
             player.hand.push(card);
             player.visible.push(card);
             player.testBust();
             if (!player.busted) {
-                console.log('player *not* busted - ' + this.dealer.Shows());
                 if (
-                        player.hit_on_dealer_shows <= dealer.Shows()
+                        player.hit_on_dealer_shows <= this.dealer.Shows()
                             &&
                         player.Total() < player.stay_at
                 ) {
-                        console.log('player hitting again');
                         this.playerHit(player.name);
                 } else {
                         // console.log('1 : Player stay calculation => ', player.stay_at, player.Total());
                         // console.log('player_hit_on_dealer_shows => ', player.hit_on_dealer_shows);
                         // console.log('Dealer shows: ', this.dealer.Shows());
-                        console.log('player.hit_on_dealer_shows: ' + player.hit_on_dealer_shows + ' display.shows: ' + dealer.Shows());
                         player.stayed = true;
                         this.playerReport(player);
                         // console.log('Player', player.name, 'hand: ', player.hand.map((card) => { console.log(card.name, card.suit, ',')}));
@@ -261,14 +259,13 @@ class Game {
                     this.dealerHit();
                 } else {
                     // console.log('Dealer stay calculation => ', this.dealer.stay_at, this.dealer.Total());
-                    this.dealer.stayed = true;
-                    this.dealerReport();
+                    if (!this.dealer.stayed) {
+                        this.dealer.stayed = true;
+                    }
                 }
             } else {
                 this.isBust = true;
                 this.dealer.stayed = true;
-                console.log('%');
-                this.dealerReport();
             }
         }
     }
@@ -286,7 +283,6 @@ class Game {
         _.forEach(this.players, (player) => {
             while (!player.stayed && !player.busted) {
                 if (player.Total() < player.stay_at) {
-                    console.log('3 : player stay calculation => ' + player.stay_at + ' ' + player.Total());
                     this.playerHit(player.name);
                 } else {
                     player.stayed = true;
@@ -317,8 +313,8 @@ class Game {
 
     successReport() {
         console.log('\n\nNumber of games:', this.num_games);
-        let successRate = '';
-        _.forEach(this.player, (player) => {
+        _.forEach(this.players, (player) => {
+            let successRate = '';
             // successRate
             successRate += 'Player Success';
             if (this.players.length > 1) {
@@ -332,27 +328,26 @@ class Game {
             let percent = (totalWins / this.num_games) * 100;
             successRate += parseFloat(percent).toFixed(2) + '%';
             successRate += '\n\n';
+            console.log(successRate);
+            successRate = '';
 
             //wins
-            player.wins.sort((a,b) => (a.score > b.score) ? 1 : -1);
+            player.wins.sort((a,b) => (a.score > b.score) ? -1 : 1);
             successRate += 'Player ';
             if (this.players.length > 1) {
                 successRate += '( ' + player.name + ' )';
             } 
             successRate += ' Winning Hand => # of times acheived';
-            successRate += '\n';
             _.forEach(player.wins, (win) => {
                 successRate += '\n' + win.score + ' => ' + win.number;
             });
+            console.log(successRate);
         });
-        console.log(successRate);
     }
 
     Tally() {
-        let dealerScore = this.dealer.busted ? 0 : this.dealer.Total();        
+        let dealerScore = this.dealer.Total();        
         let playerHigh = 0; 
-        playerHigh = this.players.reduce((a,b) => { /* console.log('*** PlayerHigh calc: ', a,b.Total());i */ (a < b.Total()) ? b.Total() : a}, 0); 
-        // console.log('PlayerHigh: ', playerHigh);
         for(let i = 0; i < this.players.length; i++) {
             if (!this.players[i].busted) {
                 if (this.players[i].Total() > playerHigh) {
@@ -360,7 +355,6 @@ class Game {
                 }
             }
         }    
-        // console.log('PlayerHigh: ', playerHigh)
         if (this.dealer.busted) {
             this.dealer.tallyScore("loss", this.dealer.Total());
         } else {
@@ -398,6 +392,7 @@ class Game {
             this.Round();
             this.num_games++;
             this.Tally();
+            this.dealerReport();
             this.resultReport();
         }
         this.successReport();
